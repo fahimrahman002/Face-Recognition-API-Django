@@ -95,26 +95,26 @@ def groupImageUpload(request):
     try:
         images = request.FILES.getlist('image__first')
         img = images[0]
-        checkDataDir()
-        group_img_path = os.getcwd()+fr"\data\group_images\{img.name}"
+        root_path = os.getcwd()+fr"\tmp\data"
+        checkDataDir(root_path)
+        group_img_path = root_path+fr"\group_images\{img.name}"
         with open(group_img_path, 'wb') as destination:
             for chunk in img.chunks():
                 destination.write(chunk)
         groupImage = GroupImage.objects.create(title=img.name)
         groupImage.save()
-        return app_face_recognition.views.main(img, groupImage, group_img_path)
+        return app_face_recognition.views.main(img, groupImage,root_path, group_img_path)
     except Exception as e:
         print("Exception: "+str(e))
         return Response({"message": "Request has no resource file attached", "status": 404})
 
-def checkDataDir():
-    root_path = os.getcwd()+fr"\data"
+def checkDataDir(root_path):
     if os.path.isdir(root_path)==False:
         os.mkdir(root_path)
-    group_img_dir=os.getcwd()+fr"\data\group_images"
+    group_img_dir=root_path+fr"\group_images"
     if os.path.isdir(group_img_dir)==False:
         os.mkdir(group_img_dir)
-    thumb_dir=os.getcwd()+fr"\data\thumbnails"
+    thumb_dir=root_path+fr"\thumbnails"
     if os.path.isdir(thumb_dir)==False:
         os.mkdir(thumb_dir)
 
