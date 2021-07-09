@@ -94,8 +94,13 @@ def testUpload(request):
 def groupImageUpload(request):
     try:
         images = request.FILES.getlist('image__first')
-        img = images[0]
-        root_path = os.getcwd()+fr"\tmp\data"
+        
+        try:
+            img = images[0]
+        except Exception as e:
+            return Response({"message": "Can't locate your file", "status": 404})
+
+        root_path = os.getcwd()+ os.sep + os.pardir+fr"\tmp"
         checkDataDir(root_path)
         group_img_path = root_path+fr"\group_images\{img.name}"
         with open(group_img_path, 'wb') as destination:
