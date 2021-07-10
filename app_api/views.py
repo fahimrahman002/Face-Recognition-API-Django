@@ -46,13 +46,13 @@ def getSelectedThumbnails(request,group_img_name):
     try:
         if GroupImage.objects.filter(title=group_img_name).exists():
             groupImage=GroupImage.objects.filter(title=group_img_name)[0]
-            print(groupImage.id)
+        
         else:
             return Response({"message": "Group image of this name is not found.", "status": 404})
             
-        thumbnailsExists = Thumbnail.objects.filter(groupImage=groupImage).exists()
+        thumbnailsExists = SelectedThumbnail.objects.filter(groupImage=groupImage).exists()
         if thumbnailsExists:
-            serializer = ThumbnailSerializer(Thumbnail.objects.filter(groupImage=groupImage), many=True)
+            serializer = SelectedThumbnailSerializer(Thumbnail.objects.filter(groupImage=groupImage), many=True)
             return Response(serializer.data)
         else:
             return Response({"message": "There is no thumbnail of this group image.", "status": 404})
