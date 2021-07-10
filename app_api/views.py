@@ -3,7 +3,7 @@ import app_face_recognition
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import GeneratedTimeline, GroupImage, SelectedThumbnail, Thumbnail
-from app_api.serializers import GeneratedTimelineSerializer, ThumbnailSerializer
+from app_api.serializers import GeneratedTimelineSerializer, ThumbnailSerializer,SelectedThumbnailSerializer
 import os
 from django.http import QueryDict
 import json
@@ -23,11 +23,30 @@ def home(request):
     return Response(my_list)
 
 
+@api_view(['DELETE'])
+def deleteSelectedThumbnails(request,group_img_name):
+    try:
+        if GroupImage.objects.filter(title=group_img_name).exists():
+            groupImage=GroupImage.objects.filter(title=group_img_name)[0]
+        else:
+            return Response({"message": "Group image of this name is not found.", "status": 404})
+            
+        thumbnailsExists = Thumbnail.objects.filter(groupImage=groupImage).exists()
+        if thumbnailsExists:
+            Thumbnail.objects.filter(groupImage=groupImage).delete()
+            return Response({"message": "All selected files have been deleted.", "status": 200})
+        else:
+            return Response({"message": "There is no thumbnail of this group image.", "status": 404})
+    except Exception as e:
+        msg=f"Exception: {e}"
+        return Response({"message": msg, "status": 404})
+
 @api_view(['GET'])
 def getSelectedThumbnails(request,group_img_name):
     try:
         if GroupImage.objects.filter(title=group_img_name).exists():
             groupImage=GroupImage.objects.filter(title=group_img_name)[0]
+            print(groupImage.id)
         else:
             return Response({"message": "Group image of this name is not found.", "status": 404})
             
@@ -39,7 +58,6 @@ def getSelectedThumbnails(request,group_img_name):
             return Response({"message": "There is no thumbnail of this group image.", "status": 404})
     except Exception as e:
         msg=f"Exception {e} occurred."
-
 
 
 @api_view(['GET'])
@@ -58,7 +76,17 @@ def postGeneratedTimeline(request):
     videoTimeline=request.data['videoTimeline']
     generatedTimeline=GeneratedTimeline.objects.create(videoFileName=videoFileName,videoTimeline=videoTimeline)
     generatedTimeline.save()
-    return Response({"message": "File uploaded", "status": 200})
+    return Response({"message": "Generated timelines uploaded successfully", "status": 200})
+
+@api_view(['DELETE'])
+def deleteGeneratedTimeline(request,videoName):
+    if GeneratedTimeline.objects.filter(videoFileName=videoName).exists():
+        generatedTimeline=GeneratedTimeline.objects.filter(videoFileName=videoName).first()
+        generatedTimeline.delete()
+        return Response({"message": "Generated timelines deleted successfully", "status": 200})
+    else:
+        return Response({"message": "No such generated timeline to delete.", "status": 404})
+    
 
 
 @api_view(['POST'])
@@ -68,17 +96,46 @@ def uploadThumbnails(request):
     groupImageExists=GroupImage.objects.filter(pk=int(request.data['groupImageId'])).exists()
     if groupImageExists:
         groupImage=GroupImage.objects.get(pk=int(request.data['groupImageId']))
-        selectedThumbnail=SelectedThumbnail.objects.create(groupImage=groupImage,selectedThumbnails=request.data['selectedThumbnails'])
-        selectedThumbnail.save()
-        return Response({"message": "File uploaded", "status": 200})
+        if SelectedThumbnail.objects.filter(groupImage=groupImage).exists():
+            selectedThumbnail=SelectedThumbnail.objects.filter(groupImage=groupImage).first()
+            selectedThumbnail.groupImage=groupImage
+            selectedThumbnail.selectedThumbnails=request.data['selectedThumbnails']
+            selectedThumbnail.save()
+            print("GID: "+request.data['groupImageId'])
+            print(request.data['selectedThumbnails'])
+        else:
+            selectedThumbnail=SelectedThumbnail.objects.create(groupImage=groupImage,selectedThumbnails=request.data['selectedThumbnails'])
+            selectedThumbnail.save()
+            
+        return Response({"message": "Selected Thumbnails uploaded for processing.", "status": 200})
     else:
         return Response({"message": "Can't fetch group image", "status":404 })
 
 @api_view(['GET'])
-def get_thumbnails(request):
+def thumbnailList(request):
     thumbnails = Thumbnail.objects.all()
     serializer = ThumbnailSerializer(thumbnails, many=True)
     return Response(serializer.data)
+    
+@api_view(['GET'])
+def selectedThumbnailList(request):
+    selectedThumbnails = SelectedThumbnail.objects.all()
+    serializer = SelectedThumbnailSerializer(selectedThumbnails, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def groupImageList(request):
+    groupImages = GroupImage.objects.all()
+    serializer = ThumbnailSerializer(groupImages, many=True)
+    return Response(serializer.data)
+
+@api_view(['DELETE'])
+def deleteGroupImage(request,pk):
+    if GroupImage.objects.filter(pk=pk).exists():
+        GroupImage.objects.get(pk=pk).delete()
+        return  Response({"message": "Group Image deleted successfully", "status":200 })
+    else:
+        return Response({"message": "Group Image doesn't exist", "status":404 })
 
 @api_view(['POST'])
 def testUpload(request):
@@ -106,8 +163,11 @@ def groupImageUpload(request):
         with open(group_img_path, 'wb') as destination:
             for chunk in img.chunks():
                 destination.write(chunk)
-        groupImage = GroupImage.objects.create(title=img.name)
-        groupImage.save()
+        if GroupImage.objects.filter(title=img.name).exists():
+            groupImage = GroupImage.objects.filter(title=img.name).first()
+        else:
+            groupImage = GroupImage.objects.create(title=img.name)
+            groupImage.save()
         return app_face_recognition.views.main(img, groupImage,root_path, group_img_path)
     except Exception as e:
         print("Exception: "+str(e))
