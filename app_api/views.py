@@ -12,7 +12,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.apps import apps
 apps.get_models()
 
-
+import json
 
 @api_view(['GET'])
 def home(request):
@@ -120,6 +120,8 @@ def thumbnailList(request):
 @api_view(['GET'])
 def selectedThumbnailList(request):
     selectedThumbnails = SelectedThumbnail.objects.all()
+    # mystr=json.loads(selectedThumbnails[0].selectedThumbnails)
+    # print(len(mystr))
     serializer = SelectedThumbnailSerializer(selectedThumbnails, many=True)
     return Response(serializer.data)
 
