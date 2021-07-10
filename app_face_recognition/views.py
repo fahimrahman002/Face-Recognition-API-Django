@@ -37,6 +37,8 @@ def main(image,group_image_object,root_path,group_img_path):
     return Response(serializer.data)
 
 def generate_thumbnails(thumb_root_path,face_locations,img,group_image_object,group_image_name_without_extention,thumb_dir):
+    if Thumbnail.objects.filter(groupImage=group_image_object).exists():
+        Thumbnail.objects.filter(groupImage=group_image_object).delete()
     for idx,(top, right, bottom, left) in enumerate(face_locations):
         file_name = "thumb_"+str(idx)
         roi = img[top-50:bottom+50,left:right]
