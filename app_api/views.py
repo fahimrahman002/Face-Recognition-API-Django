@@ -52,7 +52,7 @@ def getSelectedThumbnails(request,group_img_name):
             
         thumbnailsExists = SelectedThumbnail.objects.filter(groupImage=groupImage).exists()
         if thumbnailsExists:
-            serializer = SelectedThumbnailSerializer(Thumbnail.objects.filter(groupImage=groupImage), many=True)
+            serializer = SelectedThumbnailSerializer(SelectedThumbnail.objects.filter(groupImage=groupImage), many=True)
             return Response(serializer.data)
         else:
             return Response({"message": "There is no thumbnail of this group image.", "status": 404})
@@ -94,6 +94,7 @@ def uploadThumbnails(request):
     # print(type(request.data['selectedThumbnails']))
     # return Response({"message": "File uploaded", "status": 200})
     groupImageExists=GroupImage.objects.filter(pk=int(request.data['groupImageId'])).exists()
+    print(request.data['groupImageId'])
     if groupImageExists:
         groupImage=GroupImage.objects.get(pk=int(request.data['groupImageId']))
         if SelectedThumbnail.objects.filter(groupImage=groupImage).exists():
