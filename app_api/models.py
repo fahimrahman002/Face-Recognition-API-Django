@@ -2,7 +2,7 @@ from django.db import models
 
         
 class GroupImage(models.Model):
-    title=models.CharField(max_length=200,blank=True,null=True)
+    title=models.CharField(max_length=600,blank=True,null=True)
     def __str__(self):
         return self.title
 
@@ -18,7 +18,7 @@ class SelectedThumbnail(models.Model):
     selectedThumbnails=models.TextField(blank=True,null=True) #In json string format coz SQLite doesn't support JSONField
 
 class GeneratedTimeline(models.Model):
-    videoFileName=models.CharField(max_length=200,default=None,null=True)
+    groupImage=models.ForeignKey(GroupImage,blank=True,null=True,on_delete=models.CASCADE)
     videoTimeline=models.TextField(blank=True,null=True) #In json string format coz SQLite doesn't support JSONField
 
     

@@ -8,6 +8,7 @@ import os
 from django.http import QueryDict
 import json
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.files.storage import default_storage
 # cleanup_old_files
 from django.apps import apps
 apps.get_models()
@@ -42,14 +43,13 @@ def deleteSelectedThumbnails(request,group_img_name):
         return Response({"message": msg, "status": 404})
 
 @api_view(['GET'])
-def getSelectedThumbnails(request,group_img_name):
+def getSelectedThumbnails(request,pk):
     try:
-        if GroupImage.objects.filter(title=group_img_name).exists():
-            groupImage=GroupImage.objects.filter(title=group_img_name)[0]
-        
+        if GroupImage.objects.filter(pk=pk).exists():
+            groupImage=GroupImage.objects.get(pk=pk)
         else:
-            return Response({"message": "Group image of this name is not found.", "status": 404})
-            
+            return Response({"message": "Group image does not exist.", "status": 404})
+        
         thumbnailsExists = SelectedThumbnail.objects.filter(groupImage=groupImage).exists()
         if thumbnailsExists:
             serializer = SelectedThumbnailSerializer(SelectedThumbnail.objects.filter(groupImage=groupImage), many=True)
@@ -61,27 +61,35 @@ def getSelectedThumbnails(request,group_img_name):
 
 
 @api_view(['GET'])
-def videoTimeline(request):
-    generatedTimeline=GeneratedTimeline.objects.all()
-    # print(generatedTimeline[0].videoTimeline)
-
-    serializer=GeneratedTimelineSerializer(generatedTimeline, many=True)
-    return Response(serializer.data)
-    # return Response({"message": "File uploaded", "status": 200})
-
+def videoTimeline(request,pk):
+    if GroupImage.objects.filter(pk=pk).exists():
+        if GeneratedTimeline.objects.filter(groupImage=GroupImage.objects.get(pk=pk)).exists():
+            generatedTimeline=GeneratedTimeline.objects.filter(groupImage=GroupImage.objects.get(pk=pk))
+            serializer=GeneratedTimelineSerializer(generatedTimeline, many=True)
+            return Response(serializer.data)
+        else:
+            return Response({"message": "Timeline haven't generated yet", "status": 404})
+    else:
+        return Response({"message": "Timeline haven't generated yet", "status": 404})
 
 @api_view(['POST'])
-def postGeneratedTimeline(request):
-    videoFileName=request.data['videoFileName']
+def postGeneratedTimeline(request,pk):
     videoTimeline=request.data['videoTimeline']
-    generatedTimeline=GeneratedTimeline.objects.create(videoFileName=videoFileName,videoTimeline=videoTimeline)
-    generatedTimeline.save()
-    return Response({"message": "Generated timelines uploaded successfully", "status": 200})
+    if GroupImage.objects.filter(pk=pk).exists():
+        if GeneratedTimeline.objects.filter(groupImage=GroupImage.objects.get(pk=pk)).exists():
+            groupImg=GeneratedTimeline.objects.filter(groupImage=GroupImage.objects.get(pk=pk)).first()
+            groupImg.update(videoTimeline=videoTimeline)
+        else:
+            generatedTimeline=GeneratedTimeline.objects.create(groupImage=GroupImage.objects.get(pk=pk),videoTimeline=videoTimeline)
+            generatedTimeline.save()
+        return Response({"message": "Generated timelines uploaded successfully", "status": 200})
+    else:
+        return Response({"message": "Group image does not exist.", "status": 200})
 
 @api_view(['DELETE'])
-def deleteGeneratedTimeline(request,videoName):
-    if GeneratedTimeline.objects.filter(videoFileName=videoName).exists():
-        generatedTimeline=GeneratedTimeline.objects.filter(videoFileName=videoName).first()
+def deleteGeneratedTimeline(request,pk):
+    if GeneratedTimeline.objects.filter(pk=pk).exists():
+        generatedTimeline=GeneratedTimeline.objects.get(pk=pk)
         generatedTimeline.delete()
         return Response({"message": "Generated timelines deleted successfully", "status": 200})
     else:
@@ -91,10 +99,7 @@ def deleteGeneratedTimeline(request,videoName):
 
 @api_view(['POST'])
 def uploadThumbnails(request):
-    # print(type(request.data['selectedThumbnails']))
-    # return Response({"message": "File uploaded", "status": 200})
     groupImageExists=GroupImage.objects.filter(pk=int(request.data['groupImageId'])).exists()
-    print(request.data['groupImageId'])
     if groupImageExists:
         groupImage=GroupImage.objects.get(pk=int(request.data['groupImageId']))
         if SelectedThumbnail.objects.filter(groupImage=groupImage).exists():
@@ -102,8 +107,6 @@ def uploadThumbnails(request):
             selectedThumbnail.groupImage=groupImage
             selectedThumbnail.selectedThumbnails=request.data['selectedThumbnails']
             selectedThumbnail.save()
-            print("GID: "+request.data['groupImageId'])
-            print(request.data['selectedThumbnails'])
         else:
             selectedThumbnail=SelectedThumbnail.objects.create(groupImage=groupImage,selectedThumbnails=request.data['selectedThumbnails'])
             selectedThumbnail.save()
@@ -140,49 +143,62 @@ def deleteGroupImage(request,pk):
     else:
         return Response({"message": "Group Image doesn't exist", "status":404 })
 
+@api_view(['DELETE'])
+def removeImageFromS3(request):
+    default_storage.delete('thumbnails/888_thumb_0.jpg')
+    return  Response({"message": "Images deleted successfully", "status":200 })
+
 @api_view(['POST'])
 def testUpload(request):
     try:
         images = request.FILES.getlist('image__first')
-        print(images[0].name)
+        
         return Response({"message": "File uploaded", "status": 200})
     except Exception as e:
-        print("Exception: "+str(e))
+        
         return Response({"message": "Request has no resource file attached", "status": 404})
 
 @api_view(['POST'])
 def groupImageUpload(request):
     try:
         images = request.FILES.getlist('image__first')
-        
-        try:
-            img = images[0]
-        except Exception as e:
-            return Response({"message": "Can't locate your file", "status": 404})
-
         root_path = os.getcwd()+ os.sep + os.pardir+fr"\tmp"
-        checkDataDir(root_path)
-        group_img_path = root_path+fr"\group_images\{img.name}"
-        with open(group_img_path, 'wb') as destination:
-            for chunk in img.chunks():
-                destination.write(chunk)
-        if GroupImage.objects.filter(title=img.name).exists():
-            groupImage = GroupImage.objects.filter(title=img.name).first()
+        
+        grp_img_names_without_extention="G"
+        for img in images:
+            grp_img_names_without_extention=grp_img_names_without_extention+"+"+img.name.split(".")[0]
+        
+        group_img_path = root_path+fr"\group_images\{grp_img_names_without_extention}"
+        thumb_dir=root_path+fr"\thumbnails\{grp_img_names_without_extention}"
+        checkDataDir(root_path,group_img_path,thumb_dir)
+        for img in images:
+            with open(group_img_path+fr"\{img.name}", 'wb') as destination:
+                for chunk in img.chunks():
+                    destination.write(chunk)
+        
+        if GroupImage.objects.filter(title=grp_img_names_without_extention).exists():
+            groupImage = GroupImage.objects.filter(title=grp_img_names_without_extention).first()
         else:
-            groupImage = GroupImage.objects.create(title=img.name)
+            groupImage = GroupImage.objects.create(title=grp_img_names_without_extention)
             groupImage.save()
-        return app_face_recognition.views.main(img, groupImage,root_path, group_img_path)
+        return app_face_recognition.views.main(images, groupImage,root_path, group_img_path,grp_img_names_without_extention,thumb_dir)
     except Exception as e:
-        print("Exception: "+str(e))
-        return Response({"message": "Request has no resource file attached", "status": 404})
+        exceptionMsg=f"Exception:{e}"
+        return Response({"message":exceptionMsg , "status": 404})
 
-def checkDataDir(root_path):
+    
+
+def checkDataDir(root_path,group_img_path,thumb_dir):
     if os.path.isdir(root_path)==False:
         os.mkdir(root_path)
-    group_img_dir=root_path+fr"\group_images"
-    if os.path.isdir(group_img_dir)==False:
-        os.mkdir(group_img_dir)
-    thumb_dir=root_path+fr"\thumbnails"
+    groupImgRootdir=root_path+fr"\group_images"
+    if os.path.isdir(groupImgRootdir)==False:
+        os.mkdir(groupImgRootdir)
+    if os.path.isdir(group_img_path)==False:
+        os.mkdir(group_img_path)
+    thumbRootDir=root_path+fr"\thumbnails"
+    if os.path.isdir(thumbRootDir)==False:
+        os.mkdir(thumbRootDir)
     if os.path.isdir(thumb_dir)==False:
         os.mkdir(thumb_dir)
 
