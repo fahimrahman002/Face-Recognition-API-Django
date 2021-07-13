@@ -10,7 +10,7 @@ from rest_framework.decorators import api_view
 from app_api.serializers import ThumbnailSerializer
 from random import randint
 import shutil
-from gauth import google_drive
+from app_face_recognition.gauth import google_drive
 # cleanup_old_files
 from django.apps import apps
 apps.get_models()
