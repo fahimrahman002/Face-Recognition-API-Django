@@ -10,6 +10,7 @@ from rest_framework.decorators import api_view
 from app_api.serializers import ThumbnailSerializer
 from random import randint
 import shutil
+from core.settings import google_drive
 # cleanup_old_files
 from django.apps import apps
 apps.get_models()
@@ -53,26 +54,35 @@ def generate_thumbnails(thumbFilesDir,face_locations,img,group_image_object,thum
         file_name = str(randomNumber)+"_thumb_"+str(idx)
         roi = img[top-50:bottom+50,left:right]
         save_image(thumbFilesDir,file_name,roi,group_image_object,grp_img_names_without_extention)
-
     return 
     
 def save_image(thumbFilesDir,file_name,img,group_image_object,group_image_name_without_extention):
     out_file = thumbFilesDir + file_name + ".jpg"
     cv2.imwrite(out_file,img)
     # Upload thumbnails to AWS S3
-    s3_bucket_link="https://adobe-premiere-pro-project-files.s3.us-east-2.amazonaws.com/"
-    thumbSaveDir=f"thumbnails/{file_name}"+".jpg"
-
-    default_storage.save(f'{thumbSaveDir}', File(open(out_file, 'rb')))
-
+    # s3_bucket_link="https://adobe-premiere-pro-project-files.s3.us-east-2.amazonaws.com/"
+    # thumbSaveDir=f"thumbnails/{file_name}"+".jpg"
+    # s3fileUrl=f"{s3_bucket_link}{thumbSaveDir}"
+    # default_storage.save(f'{thumbSaveDir}', File(open(out_file, 'rb')))
+    print(f"uploading {file_name}.jpg to drive...")
+    fileId=uploadToDrive(file_name,out_file)
+    fileUrl=f"https://drive.google.com/uc?id={fileId}"
+    print(f"Upload complete.")
     thumbnail=Thumbnail.objects.create(
             groupImage=group_image_object,
             title=file_name,
-            thumbnail=f"{s3_bucket_link}{thumbSaveDir}"
+            thumbnail=fileUrl
         )
     thumbnail.save()
 
     return
+
+def uploadToDrive(filename,out_file):
+    file = google_drive.CreateFile({'parents': [{'id': '1T_4PMG_3a7-nfHfO4qzTT7N0ZYR_yhGz'}],'title': f'{filename}.jpg'})
+    file.SetContentFile(out_file)
+    file.Upload()
+    return file['id']
+   
 
 
 

@@ -1,4 +1,8 @@
 .env
 .vscode
 venv
+static_files/admin
+static_files/css
+static_files/rest_framework
+
 
