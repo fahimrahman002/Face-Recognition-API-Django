@@ -34,10 +34,10 @@ def main(images,group_image_object,root_path,group_img_path,grp_img_names_withou
         Thumbnail.objects.filter(groupImage=group_image_object).delete()
    
     groupImagePaths  = [fr"{group_img_path}\{name}" for name in os.listdir(group_img_path)]
-    # gauth = GoogleAuth()
-    # gauth.CommandLineAuth()
-    # drive = GoogleDrive(gauth)
-    drive =authenticate_google_drive()
+    gauth = GoogleAuth()
+    gauth.CommandLineAuth()
+    drive = GoogleDrive(gauth)
+    # drive =authenticate_google_drive()
     for imgPath in groupImagePaths:
         print(imgPath)
         img = cv2.imread(imgPath)
