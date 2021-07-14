@@ -1,3 +1,4 @@
 venv\Scripts\Activate
 python manage.py runserver
-py google_drive.py
+cd app_face_recognition
+py gauth.py

@@ -1,13 +1,9 @@
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 
-def authenticate_google_drive():
-    gauth = GoogleAuth()
-    gauth.CommandLineAuth()
-    drive = GoogleDrive(gauth)
-    return drive
 
-def get_drive():
+
+def authenticate_google_drive():
     gauth = GoogleAuth()
 
     # Try to load saved client credentials
@@ -38,7 +34,7 @@ def get_drive():
     gauth.SaveCredentialsFile("credentials.json")  
 
     drive = GoogleDrive(gauth)
-    return drive
 
-# google_drive=authenticate_google_drive()
-# save_cred()
+
+authenticate_google_drive()
+
