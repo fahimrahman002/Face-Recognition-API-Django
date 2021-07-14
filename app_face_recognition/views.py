@@ -35,7 +35,7 @@ def main(images,group_image_object,root_path,group_img_path,grp_img_names_withou
     groupImagePaths  = [fr"{group_img_path}\{name}" for name in os.listdir(group_img_path)]
     print("Getting google drive...")
     google_drive=gauth.authenticate_google_drive()
-    print("Google drive found")
+    # print(groupImagePaths)
     for imgPath in groupImagePaths:
         print("Loading Img...")
         img = cv2.imread(imgPath)
