@@ -37,9 +37,11 @@ def main(images,group_image_object,root_path,group_img_path,grp_img_names_withou
     google_drive=gauth.authenticate_google_drive()
     print("Google drive found")
     for imgPath in groupImagePaths:
+        print("Loading Img...")
         img = cv2.imread(imgPath)
         fr_image = fr.load_image_file(imgPath)
         face_locations = fr.face_locations(fr_image)
+        print("Generating thumbs...")
         generate_thumbnails(google_drive,thumbFilesDir,face_locations,img,group_image_object,thumb_dir,grp_img_names_without_extention)
     
     # Forcefully delete the folders
@@ -54,13 +56,16 @@ def generate_thumbnails(google_drive,thumbFilesDir,face_locations,img,group_imag
     randomNumber=randint(1, 1000)
     for idx,(top, right, bottom, left) in enumerate(face_locations):
         file_name = str(randomNumber)+"_thumb_"+str(idx)
+        print(file_name)
         roi = img[top-50:bottom+50,left:right]
         save_image(google_drive,thumbFilesDir,file_name,roi,group_image_object,grp_img_names_without_extention)
     return 
     
 def save_image(google_drive,thumbFilesDir,file_name,img,group_image_object,group_image_name_without_extention):
     out_file = thumbFilesDir + file_name + ".jpg"
+    print("Writing img...")
     cv2.imwrite(out_file,img)
+    print("Img write complete")
     # Upload thumbnails to AWS S3
     # s3_bucket_link="https://adobe-premiere-pro-project-files.s3.us-east-2.amazonaws.com/"
     # thumbSaveDir=f"thumbnails/{file_name}"+".jpg"
