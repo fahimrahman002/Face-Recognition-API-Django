@@ -35,6 +35,8 @@ def authenticate_google_drive():
 
     drive = GoogleDrive(gauth)
 
+    return drive
+
 
 authenticate_google_drive()
 
