@@ -138,7 +138,14 @@ def groupImageList(request):
 @api_view(['DELETE'])
 def deleteGroupImage(request,pk):
     if GroupImage.objects.filter(pk=pk).exists():
-        GroupImage.objects.get(pk=pk).delete()
+        groupImage=GroupImage.objects.get(pk=pk)
+        if Thumbnail.objects.filter(groupImage=groupImage).exists():
+            thumbnails=Thumbnail.objects.filter(groupImage=groupImage)
+            for thumbnail in thumbnails:
+                default_storage.delete(f'thumbnails/{thumbnail.title}.jpg')
+
+        groupImage.delete()
+        
         return  Response({"message": "Group Image deleted successfully", "status":200 })
     else:
         return Response({"message": "Group Image doesn't exist", "status":404 })
@@ -163,7 +170,7 @@ def groupImageUpload(request):
     try:
         images = request.FILES.getlist('image__first')
         root_path = os.getcwd()+ os.sep + os.pardir+fr"\tmp"
-        print(len(images))
+        
         grp_img_names_without_extention="G"
         for img in images:
             grp_img_names_without_extention=grp_img_names_without_extention+"+"+img.name.split(".")[0]
