@@ -10,7 +10,7 @@ from rest_framework.decorators import api_view
 from app_api.serializers import ThumbnailSerializer
 from random import randint
 import shutil
-from gauth import authenticate_google_drive
+import gauth
 # cleanup_old_files
 from django.apps import apps
 apps.get_models()
@@ -34,7 +34,7 @@ def main(images,group_image_object,root_path,group_img_path,grp_img_names_withou
 
     groupImagePaths  = [fr"{group_img_path}\{name}" for name in os.listdir(group_img_path)]
     print("Getting google drive...")
-    google_drive=authenticate_google_drive()
+    google_drive=gauth.authenticate_google_drive()
     print("Google drive found")
     for imgPath in groupImagePaths:
         img = cv2.imread(imgPath)
