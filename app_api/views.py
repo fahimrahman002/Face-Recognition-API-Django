@@ -163,7 +163,7 @@ def groupImageUpload(request):
     try:
         images = request.FILES.getlist('image__first')
         root_path = os.getcwd()+ os.sep + os.pardir+fr"\tmp"
-        
+        print(len(images))
         grp_img_names_without_extention="G"
         for img in images:
             grp_img_names_without_extention=grp_img_names_without_extention+"+"+img.name.split(".")[0]
