@@ -13,6 +13,7 @@ import shutil
 # cleanup_old_files
 from django.apps import apps
 apps.get_models()
+import glob2
 
 
 @api_view(['GET'])
@@ -30,7 +31,8 @@ def main(images,group_image_object,root_path,group_img_path,grp_img_names_withou
     if Thumbnail.objects.filter(groupImage=group_image_object).exists():
         Thumbnail.objects.filter(groupImage=group_image_object).delete()
     
-    groupImagePaths  = [fr"{group_img_path}\{name}" for name in os.listdir(group_img_path)]
+    groupImagePaths=glob2.glob(group_img_path+r"\*")
+    # groupImagePaths  = [fr"{group_img_path}\{name}" for name in os.listdir(group_img_path)]
     print(groupImagePaths)
     for imgPath in groupImagePaths:
         print(imgPath)
