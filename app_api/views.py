@@ -139,10 +139,10 @@ def groupImageList(request):
 def deleteGroupImage(request,pk):
     if GroupImage.objects.filter(pk=pk).exists():
         groupImage=GroupImage.objects.get(pk=pk)
-        if Thumbnail.objects.filter(groupImage=groupImage).exists():
-            thumbnails=Thumbnail.objects.filter(groupImage=groupImage)
-            for thumbnail in thumbnails:
-                default_storage.delete(f'thumbnails/{thumbnail.title}.jpg')
+        # if Thumbnail.objects.filter(groupImage=groupImage).exists():
+        #     thumbnails=Thumbnail.objects.filter(groupImage=groupImage)
+        #     for thumbnail in thumbnails:
+        #         default_storage.delete(f'thumbnails/{thumbnail.title}.jpg')
 
         groupImage.delete()
         
