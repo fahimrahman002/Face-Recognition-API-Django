@@ -175,7 +175,7 @@ def groupImageUpload(request):
         for img in images:
             grp_img_names_without_extention=grp_img_names_without_extention+"+"+img.name.split(".")[0]
         
-        print("Total group image:"+len(images))
+        print(len(images))
         group_img_path = root_path+fr"\group_images\{grp_img_names_without_extention}"
         thumb_dir=root_path+fr"\thumbnails\{grp_img_names_without_extention}"
         checkDataDir(root_path,group_img_path,thumb_dir)
