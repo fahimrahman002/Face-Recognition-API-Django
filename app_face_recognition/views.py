@@ -26,7 +26,7 @@ def test(req):
 def main(images,group_image_object,root_path,group_img_path,grp_img_names_without_extention,thumb_dir):
     
     thumbFilesDir = root_path+fr"\thumbnails\{grp_img_names_without_extention}\\"
-
+    print(thumbFilesDir)
     if Thumbnail.objects.filter(groupImage=group_image_object).exists():
         Thumbnail.objects.filter(groupImage=group_image_object).delete()
     

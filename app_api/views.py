@@ -179,11 +179,7 @@ def groupImageUpload(request):
         group_img_path = root_path+fr"\group_images\{grp_img_names_without_extention}"
         thumb_dir=root_path+fr"\thumbnails\{grp_img_names_without_extention}"
         checkDataDir(root_path,group_img_path,thumb_dir)
-        if os.path.isdir(thumb_dir)==False:
-            print("Thumb dir not created")
-        else:
-            os.mkdir(thumb_dir)
-            print("Thumb dir created")
+   
         for img in images:
             with open(group_img_path+fr"\{img.name}", 'wb') as destination:
                 for chunk in img.chunks():
@@ -205,15 +201,20 @@ def groupImageUpload(request):
 def checkDataDir(root_path,group_img_path,thumb_dir):
     if os.path.isdir(root_path)==False:
         os.mkdir(root_path)
-    print("root path ok")
+    else:
+        print("root path ok")
     groupImgRootdir=root_path+fr"\group_images"
     if os.path.isdir(groupImgRootdir)==False:
+        print(groupImgRootdir+" dir created")
         os.mkdir(groupImgRootdir)
     if os.path.isdir(group_img_path)==False:
+        print(group_img_path+" dir created")
         os.mkdir(group_img_path)
     thumbRootDir=root_path+fr"\thumbnails"
     if os.path.isdir(thumbRootDir)==False:
+        print(thumbRootDir+" dir created")
         os.mkdir(thumbRootDir)
     if os.path.isdir(thumb_dir)==False:
+        print(thumb_dir+" dir created")
         os.mkdir(thumb_dir)
 
