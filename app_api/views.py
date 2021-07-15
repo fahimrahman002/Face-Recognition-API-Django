@@ -179,7 +179,11 @@ def groupImageUpload(request):
         group_img_path = root_path+fr"\group_images\{grp_img_names_without_extention}"
         thumb_dir=root_path+fr"\thumbnails\{grp_img_names_without_extention}"
         checkDataDir(root_path,group_img_path,thumb_dir)
-        print(thumb_dir)
+        if os.path.isdir(thumb_dir)==False:
+            print("Thumb dir not created")
+        else:
+            os.mkdir(thumb_dir)
+            print("Thumb dir created")
         for img in images:
             with open(group_img_path+fr"\{img.name}", 'wb') as destination:
                 for chunk in img.chunks():
@@ -190,7 +194,7 @@ def groupImageUpload(request):
         else:
             groupImage = GroupImage.objects.create(title=grp_img_names_without_extention)
             groupImage.save()
-        print(thumb_dir)
+        
         return app_face_recognition.views.main(images, groupImage,root_path, group_img_path,grp_img_names_without_extention,thumb_dir)
     except Exception as e:
         exceptionMsg=f"Exception:{e}"
