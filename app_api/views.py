@@ -143,7 +143,7 @@ def deleteGroupImage(request,pk):
         #     thumbnails=Thumbnail.objects.filter(groupImage=groupImage)
         #     for thumbnail in thumbnails:
         #         default_storage.delete(f'thumbnails/{thumbnail.title}.jpg')
-
+        
         groupImage.delete()
         
         return  Response({"message": "Group Image deleted successfully", "status":200 })
@@ -185,12 +185,12 @@ def groupImageUpload(request):
                 for chunk in img.chunks():
                     destination.write(chunk)
         
-        if GroupImage.objects.filter(title=grp_img_names_without_extention).exists():
-            groupImage = GroupImage.objects.filter(title=grp_img_names_without_extention).first()
-        else:
-            groupImage = GroupImage.objects.create(title=grp_img_names_without_extention)
-            groupImage.save()
-        
+        # if GroupImage.objects.filter(title=grp_img_names_without_extention).exists():
+        #     groupImage = GroupImage.objects.filter(title=grp_img_names_without_extention).first()
+        # else:
+        #     groupImage = GroupImage.objects.create(title=grp_img_names_without_extention)
+        #     groupImage.save()
+        groupImage = GroupImage.objects.create(title=grp_img_names_without_extention)
         return app_face_recognition.views.main(images, groupImage,root_path, group_img_path,grp_img_names_without_extention,thumb_dir)
     except Exception as e:
         exceptionMsg=f"Exception:{e}"
