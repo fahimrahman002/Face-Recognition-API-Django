@@ -6,7 +6,7 @@ from app_api import models
 class GroupImageSerializer(serializers.ModelSerializer):
     class Meta:
         model=GroupImage
-        fields='__all__'
+        fields=['id','title','time']
 
 class ThumbnailSerializer(serializers.ModelSerializer):
     class Meta:

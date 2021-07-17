@@ -3,7 +3,7 @@ import app_face_recognition
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import GeneratedTimeline, GroupImage, SelectedThumbnail, Thumbnail
-from app_api.serializers import GeneratedTimelineSerializer, ThumbnailSerializer,SelectedThumbnailSerializer
+from app_api.serializers import GeneratedTimelineSerializer, GroupImageSerializer, ThumbnailSerializer,SelectedThumbnailSerializer
 import os
 from django.http import QueryDict
 import json
@@ -24,11 +24,21 @@ def home(request):
     return Response(my_list)
 
 
-@api_view(['DELETE'])
-def deleteSelectedThumbnails(request,group_img_name):
+@api_view(['POST'])
+def updateTime(request,pk):
     try:
-        if GroupImage.objects.filter(title=group_img_name).exists():
-            groupImage=GroupImage.objects.filter(title=group_img_name)[0]
+        time=request.data['time']
+        GroupImage.objects.filter(pk=pk).update(time=time)
+        return Response({"message": "Fetch time update.", "status": 200})
+    except Exception as e:
+        print(e)
+        return Response({"message": "Group image does not exist.", "status": 404})
+
+@api_view(['DELETE'])
+def deleteSelectedThumbnails(request,group_img_id):
+    try:
+        if GroupImage.objects.filter(pk=group_img_id).exists():
+            groupImage=GroupImage.objects.get(pk=group_img_id)
         else:
             return Response({"message": "Group image of this name is not found.", "status": 404})
             
@@ -132,7 +142,7 @@ def selectedThumbnailList(request):
 @api_view(['GET'])
 def groupImageList(request):
     groupImages = GroupImage.objects.all()
-    serializer = ThumbnailSerializer(groupImages, many=True)
+    serializer = GroupImageSerializer(groupImages, many=True)
     return Response(serializer.data)
 
 @api_view(['DELETE'])
@@ -149,6 +159,10 @@ def deleteGroupImage(request,pk):
         return  Response({"message": "Group Image deleted successfully", "status":200 })
     else:
         return Response({"message": "Group Image doesn't exist", "status":404 })
+
+
+
+
 
 @api_view(['DELETE'])
 def removeImageFromS3(request):

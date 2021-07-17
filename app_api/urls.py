@@ -15,5 +15,5 @@ urlpatterns = [
     path('deleteGeneratedTimeline/<int:pk>', views.deleteGeneratedTimeline, name='deleteGeneratedTimeline'),
     path('deleteGroupImage/<int:pk>', views.deleteGroupImage, name='deleteGroupImage'),
     path('removeImageFromS3', views.removeImageFromS3, name='removeImageFromS3'),
-    
+    path('updateTime/<int:pk>/', views.updateTime, name='updateTime'),
 ]
