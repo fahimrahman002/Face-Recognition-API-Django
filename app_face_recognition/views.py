@@ -24,7 +24,7 @@ def test(req):
     }
     return Response(my_list)
 
-def main(images,group_image_object,root_path,group_img_path,grp_img_names_without_extention,thumb_dir):
+def main(group_image_object,root_path,group_img_path,grp_img_names_without_extention,thumb_dir):
     
     thumbFilesDir = root_path+fr"\thumbnails\{grp_img_names_without_extention}\\"
     print(thumbFilesDir)
@@ -50,9 +50,9 @@ def main(images,group_image_object,root_path,group_img_path,grp_img_names_withou
     return Response(serializer.data)
 
 def generate_thumbnails(thumbFilesDir,face_locations,img,group_image_object,thumb_dir,grp_img_names_without_extention):
-    randomNumber=randint(1, 1000)
     for idx,(top, right, bottom, left) in enumerate(face_locations):
-        file_name = str(randomNumber)+"_thumb_"+str(idx)
+        randomNumber=randint(1, 1000)
+        file_name =group_image_object.projectName+"_thumb_"+str(randomNumber)
         print(file_name)
         roi = img[top-50:bottom+50,left:right]
         save_image(thumbFilesDir,file_name,roi,group_image_object,grp_img_names_without_extention)

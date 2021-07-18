@@ -161,9 +161,6 @@ def deleteGroupImage(request,pk):
         return Response({"message": "Group Image doesn't exist", "status":404 })
 
 
-
-
-
 @api_view(['DELETE'])
 def removeImageFromS3(request):
     default_storage.delete('thumbnails/888_thumb_0.jpg')
@@ -182,14 +179,15 @@ def testUpload(request):
 @api_view(['POST'])
 def groupImageUpload(request):
     try:
-        images = request.FILES.getlist('image__first')
+        images = request.FILES.getlist('groupImages')
+        projectName=request.data['projectName']
+        importedVideos=request.data['importedVideos']
+     
         root_path = os.getcwd()+ os.sep + os.pardir+fr"\tmp"
-        
         grp_img_names_without_extention="G"
         for img in images:
             grp_img_names_without_extention=grp_img_names_without_extention+"+"+img.name.split(".")[0]
         
-        print(len(images))
         group_img_path = root_path+fr"\group_images\{grp_img_names_without_extention}"
         thumb_dir=root_path+fr"\thumbnails\{grp_img_names_without_extention}"
         checkDataDir(root_path,group_img_path,thumb_dir)
@@ -198,16 +196,13 @@ def groupImageUpload(request):
             with open(group_img_path+fr"\{img.name}", 'wb') as destination:
                 for chunk in img.chunks():
                     destination.write(chunk)
-        
-        # if GroupImage.objects.filter(title=grp_img_names_without_extention).exists():
-        #     groupImage = GroupImage.objects.filter(title=grp_img_names_without_extention).first()
-        # else:
-        #     groupImage = GroupImage.objects.create(title=grp_img_names_without_extention)
-        #     groupImage.save()
-        groupImage = GroupImage.objects.create(title=grp_img_names_without_extention)
-        return app_face_recognition.views.main(images, groupImage,root_path, group_img_path,grp_img_names_without_extention,thumb_dir)
+      
+        groupImage = GroupImage.objects.create(title=grp_img_names_without_extention,projectName=projectName,importedVideos=importedVideos)
+        return app_face_recognition.views.main(groupImage,root_path, group_img_path,grp_img_names_without_extention,thumb_dir)
+    
     except Exception as e:
         exceptionMsg=f"Exception:{e}"
+        print(exceptionMsg)
         return Response({"message":exceptionMsg , "status": 404})
 
     
