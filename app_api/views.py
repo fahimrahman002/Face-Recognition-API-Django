@@ -80,7 +80,7 @@ def videoTimeline(request,pk):
         else:
             return Response({"message": "Timeline haven't generated yet", "status": 404})
     else:
-        return Response({"message": "Timeline haven't generated yet", "status": 404})
+        return Response({"message": "Can't fetch group image ID.", "status": 405})
 
 @api_view(['POST'])
 def postGeneratedTimeline(request,pk):
