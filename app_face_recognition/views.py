@@ -14,6 +14,7 @@ import shutil
 from django.apps import apps
 apps.get_models()
 import glob2
+from decouple import config
 
 
 @api_view(['GET'])
@@ -62,7 +63,7 @@ def save_image(thumbFilesDir,file_name,img,group_image_object,group_image_name_w
     out_file = thumbFilesDir + file_name + ".jpg"
     cv2.imwrite(out_file,img)
     # Upload thumbnails to AWS S3
-    s3_bucket_link="https://adobe-premiere-pro-project-files.s3.us-east-2.amazonaws.com/"
+    s3_bucket_link=f"https://{config('AWS_STORAGE_BUCKET_NAME')}.s3.{config('AWS_STORAGE_BUCKET_REGION')}.amazonaws.com/"
     thumbSaveDir=f"thumbnails/{file_name}"+".jpg"
     s3fileUrl=f"{s3_bucket_link}{thumbSaveDir}"
     default_storage.save(f'{thumbSaveDir}', File(open(out_file, 'rb')))
