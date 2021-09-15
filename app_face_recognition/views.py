@@ -54,7 +54,7 @@ def generate_thumbnails(thumbFilesDir,face_locations,img,group_image_object,thum
     for idx,(top, right, bottom, left) in enumerate(face_locations):
         randomNumber=randint(1, 1000)
         file_name =group_image_object.projectName+"_thumb_"+str(randomNumber)
-        print(file_name)
+        # print(file_name)
         roi = img[top-50:bottom+50,left:right]
         save_image(thumbFilesDir,file_name,roi,group_image_object,grp_img_names_without_extention)
     return 
@@ -64,10 +64,14 @@ def save_image(thumbFilesDir,file_name,img,group_image_object,group_image_name_w
     cv2.imwrite(out_file,img)
     # Upload thumbnails to AWS S3
     s3_bucket_link=f"https://{config('AWS_STORAGE_BUCKET_NAME')}.s3.{config('AWS_STORAGE_BUCKET_REGION')}.amazonaws.com/"
+    
     thumbSaveDir=f"thumbnails/{file_name}"+".jpg"
+    thumbSaveDir=thumbSaveDir.replace("+", "_")
+    thumbSaveDir=thumbSaveDir.replace(" ", "_")
     s3fileUrl=f"{s3_bucket_link}{thumbSaveDir}"
     default_storage.save(f'{thumbSaveDir}', File(open(out_file, 'rb')))
-  
+    print(s3fileUrl)
+    
     print(f"Upload complete.")
     thumbnail=Thumbnail.objects.create(
             groupImage=group_image_object,
